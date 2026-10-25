@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Examination System</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --error: #dc2626;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .timer {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #dc2626;
+            background: #fee2e2;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        .error-msg {
+            color: var(--error);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .question-card {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .option-label {
+            display: block;
+            padding: 8px 12px;
+            margin: 6px 0;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .option-label:hover {
+            background: #eff6ff;
+            border-color: var(--primary);
+        }
+
+        .option-label input {
+            margin-right: 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        #quizSection {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 1.1rem;
+            color: #64748b;
+            padding: 20px;
+        }
+
+        /* 🚨 Security Warning Modal */
+        #cheatModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 999999;
+            color: white;
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #cheatModal h2 {
+            color: #ef4444;
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+
+        #cheatModal p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        #cheatModal button {
+            width: auto;
+            padding: 12px 30px;
+            background: #ef4444;
+            font-size: 1.1rem;
+        }
+
+        /* 📜 Disclaimer Rules Modal */
+        #rulesModal {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(4px);
+            z-index: 99999;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .rules-card {
+            background: white;
+            max-width: 500px;
+            width: 100%;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+            text-align: left;
+        }
+
+        .rules-card h3 {
+            margin-top: 0;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .rules-card ul {
+            padding-left: 20px;
+            color: #334155;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .disclaimer-box {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 10px 12px;
+            color: #991b1b;
+            font-size: 0.88rem;
+            font-weight: 600;
+            margin: 15px 0;
+        }
+
+        .agree-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .agree-container input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 📜 Disclaimer Rules Modal (Auto Pop-up) -->
+    <div id="rulesModal">
+        <div class="rules-card">
+            <h3>📋 Examination Rules & Security Disclaimer</h3>
+            <ul>
+                <li>Any type of cheating is <b>strictly prohibited</b></li>
+                <li>Switching tabs,screen-sharing, split-screen, or floating apps are blocked.</li>
+                <li>your exam automatically submitted if you involve in cheat</li>
+            </ul>
+            <div class="disclaimer-box">
+                👉 Disclaimer: If you engage in any form of cheating, you will be automatically terminated from the
+                examination, and your exam will be submitted automatically.
+            </div>
+            <div class="agree-container">
+                <input type="checkbox" id="acceptCheck">
+                <label for="acceptCheck">I have read and agree to all terms & conditions.</label>
+            </div>
+            <button id="acceptRulesBtn" disabled>Accept & Proceed</button>
+        </div>
+    </div>
+
+    <!-- 🚨 Security Warning Modal -->
+    <div id="cheatModal">
+        <h2>SECURITY VIOLATION!</h2>
+        <p id="cheatReason">Screen Share, Overlay, or Screen Capture detected!</p>
+        <p><b id="cheatCountText">Warning 1/2</b></p>
+        <button id="dismissCheatBtn">Return to Test</button>
+    </div>
+
+    <div class="container">
+        <!-- Registration Screen -->
+        <div id="authSection">
+            <h2>Aspirant Registration</h2>
+
+            <div class="input-group">
+                <label>Full Name</label>
+                <input type="text" id="studentName" placeholder="Enter your real name" required>
+                <div id="nameError" class="error-msg">Please enter a valid name.</div>
+            </div>
+
+            <div class="input-group">
+                <label>Roll Number</label>
+                <input type="text" id="studentRoll" placeholder="Enter your Roll No." required>
+            </div>
+
+            <div class="input-group">
+                <label>Contact Number</label>
+                <input type="tel" id="studentPhone" placeholder="Enter 10-digit mobile number" maxlength="10" required>
+                <div id="phoneError" class="error-msg">Please enter a valid 10-digit contact number.</div>
+            </div>
+
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email" id="studentEmail" placeholder="Enter your email address" required>
+                <div id="emailError" class="error-msg">Please enter a valid email format.</div>
+            </div>
+
+            <button id="startBtn">Start My Test</button>
+        </div>
+
+        <!-- Live Exam Screen -->
+        <div id="quizSection">
+            <div class="header">
+                <h3>Online Examination</h3>
+                <div class="timer" id="timerDisplay">10:00</div>
+            </div>
+            <div id="questionsContainer" class="loading">Loading security protocols and questions........</div>
+            <button id="submitBtn" style="display:none;">Submit Examination</button>
+        </div>
+    </div>
+
+    <script>
+        var webAppUrl = "https://script.google.com/macros/s/AKfycbylXNhE2xXwDdDe_GtBU1O-DYKgkIkBBMN5jQGtYUioWgNEXprBqyY2djiQLusgNyTi/exec";
+
+        var globalQuestions = [];
+        var timeLeft = 600;
+        var timerInterval;
+        var cheatCount = 0;
+        var isSubmitted = false;
+        var isExamStarted = false;
+        var focusCheckInterval = null;
+
+        // 📜 Disclaimer Acceptance Logic
+        document.getElementById('acceptCheck').addEventListener('change', function () {
+            document.getElementById('acceptRulesBtn').disabled = !this.checked;
+        });
+
+        document.getElementById('acceptRulesBtn').addEventListener('click', function () {
+            document.getElementById('rulesModal').style.display = 'none';
+        });
+
+        // Selection & Clipboard Protection
+        document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+        document.addEventListener('copy', function (e) { e.preventDefault(); });
+        document.addEventListener('cut', function (e) { e.preventDefault(); });
+        document.addEventListener('paste', function (e) { e.preventDefault(); });
+
+        function safeFullScreen() {
+            try {
+                var el = document.documentElement;
+                if (el.requestFullscreen) el.requestFullscreen().catch(function () { });
+                else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen().catch(function () { });
+                else if (el.mozRequestFullScreen) el.mozRequestFullScreen().catch(function () { });
+                else if (el.msRequestFullscreen) el.msRequestFullscreen().catch(function () { });
+            } catch (e) { }
+        }
+
+        function triggerCheatWarning(reason) {
+            if (!isExamStarted || isSubmitted) return;
+            if (document.getElementById('cheatModal').style.display === 'flex') return;
+
+            cheatCount++;
+
+            document.getElementById('cheatReason').innerText = reason + "\nCheating is strictly prohibited!";
+            document.getElementById('cheatCountText').innerText = "Warning (" + cheatCount + "/2)";
+            document.getElementById('cheatModal').style.display = 'flex';
+
+            if (cheatCount >= 2) {
+                document.getElementById('cheatReason').innerText = "Maximum violation limit exceeded (1/1). Test auto-terminating...";
+                document.getElementById('dismissCheatBtn').style.display = 'none';
+                setTimeout(function () {
+                    submitExam();
+                }, 1000);
+            }
+        }
+
+        document.getElementById('dismissCheatBtn').addEventListener('click', function () {
+            document.getElementById('cheatModal').style.display = 'none';
+            safeFullScreen();
+        });
+
+        // 🔒 Fullscreen Exit Tracking
+        document.addEventListener('fullscreenchange', function () {
+            if (isExamStarted && !isSubmitted && !document.fullscreenElement && !document.webkitIsFullScreen && !document.mozFullScreen && !document.msFullscreenElement) {
+                triggerCheatWarning("Fullscreen exit detected!");
+            }
+        });
+
+        // 🔒 Screen Focus Loss (Live Overlay & Screen Share Capture)
+        window.addEventListener('blur', function () {
+            if (isExamStarted && !isSubmitted) {
+                triggerCheatWarning("Screen Focus Lost! cheating is detected.");
+            }
+        });
+
+        // 🔒 Background Switch
+        document.addEventListener('visibilitychange', function () {
+            if (isExamStarted && !isSubmitted && document.hidden) {
+                triggerCheatWarning("Background Switch / Screen Capture detected!");
+            }
+        });
+
+        // 🔒 Touch Cancel (Bottom Gesture / Screen Share Overlay Interrupt)
+        window.addEventListener('touchcancel', function () {
+            if (isExamStarted && !isSubmitted) {
+                triggerCheatWarning("Screen Capture / Gesture Interrupt triggered!");
+            }
+        });
+
+        // 🔒 Active High-Frequency Polling for Gemini Floating Overlay Detection
+        function startFocusMonitoring() {
+            if (focusCheckInterval) clearInterval(focusCheckInterval);
+
+            focusCheckInterval = setInterval(function () {
+                if (isExamStarted && !isSubmitted) {
+                    // Focus check & screen orientation/overlay shift check
+                    if (!document.hasFocus()) {
+                        triggerCheatWarning(" Screen Share or System Overlay active!");
+                    }
+                }
+            }, 200); // 200ms ultra-fast polling
+        }
+
+        document.getElementById('startBtn').addEventListener('click', function () {
+            var name = document.getElementById('studentName').value.trim();
+            var roll = document.getElementById('studentRoll').value.trim();
+            var phone = document.getElementById('studentPhone').value.trim();
+            var email = document.getElementById('studentEmail').value.trim();
+
+            document.getElementById('nameError').style.display = 'none';
+            document.getElementById('phoneError').style.display = 'none';
+            document.getElementById('emailError').style.display = 'none';
+
+            var isValid = true;
+            var nameRegex = /^[a-zA-Z\s]{3,50}$/;
+            if (!nameRegex.test(name)) {
+                document.getElementById('nameError').style.display = 'block';
+                isValid = false;
+            }
+
+            var phoneRegex = /^[5-9]\d{9}$/;
+            if (!phoneRegex.test(phone)) {
+                document.getElementById('phoneError').style.display = 'block';
+                isValid = false;
+            }
+
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                document.getElementById('emailError').style.display = 'block';
+                isValid = false;
+            }
+
+            if (!roll) {
+                alert("Please enter your Roll Number.");
+                isValid = false;
+            }
+
+            if (isValid) {
+                startExam();
+            }
+        });
+
+        function startExam() {
+            safeFullScreen();
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('quizSection').style.display = 'block';
+
+            loadQuestions();
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+
+            timerInterval = setInterval(function () {
+                timeLeft--;
+                var mins = Math.floor(timeLeft / 60);
+                var secs = timeLeft % 60;
+                document.getElementById('timerDisplay').innerText = mins.toString().padStart(2, '0') + ":" + secs.toString().padStart(2, '0');
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Time is up! Submitting automatically.");
+                    submitExam();
+                }
+            }, 1000);
+        }
+
+        function loadQuestions() {
+            var container = document.getElementById('questionsContainer');
+            container.innerText = "Fetching questions from database...";
+
+            fetch(webAppUrl)
+                .then(function (res) {
+                    if (!res.ok) {
+                        throw new Error("HTTP error! Status: " + res.status);
+                    }
+                    return res.json();
+                })
+                .then(function (data) {
+                    if (typeof data === 'string') {
+                        data = JSON.parse(data);
+                    }
+                    if (data.error) {
+                        container.innerText = "Google Sheet Error: " + data.error;
+                        return;
+                    }
+                    if (!Array.isArray(data)) {
+                        container.innerText = "Invalid data format received from Google Sheet.";
+                        return;
+                    }
+                    globalQuestions = data;
+                    renderQuestions();
+                })
+                .catch(function (err) {
+                    container.innerText = "Failed to load questions. Error details: " + err.message + "\n\nNote: Ensure that your internet is on.";
+                });
+        }
+
+        function renderQuestions() {
+            var container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+
+            if (!globalQuestions || globalQuestions.length === 0) {
+                container.innerText = "No questions found in the first tab (Questions) of your Google Sheet.";
+                return;
+            }
+
+            globalQuestions.forEach(function (q, index) {
+                var card = document.createElement('div');
+                card.className = 'question-card';
+
+                var opt = q.options || {};
+                var optA = opt.A || opt.a || q.a || q.A || '';
+                var optB = opt.B || opt.b || q.b || q.B || '';
+                var optC = opt.C || opt.c || q.c || q.C || '';
+                var optD = opt.D || opt.d || q.d || q.D || '';
+
+                card.innerHTML = '<div class="question-text">' + (index + 1) + '. ' + (q.question || "Untitled Question") + '</div>' +
+                    '<label class="option-label"><input type="radio" name="q_' + (q.id || index) + '" value="A"> ' + optA + '</label>' +
+                    '<label class="option-label"><input type="radio" name="q_' + (q.id || index) + '" value="B"> ' + optB + '</label>' +
+                    '<label class="option-label"><input type="radio" name="q_' + (q.id || index) + '" value="C"> ' + optC + '</label>' +
+                    '<label class="option-label"><input type="radio" name="q_' + (q.id || index) + '" value="D"> ' + optD + '</label>';
+
+                container.appendChild(card);
+            });
+
+            document.getElementById('submitBtn').style.display = 'block';
+            isExamStarted = true;
+            startFocusMonitoring();
+            startTimer();
+        }
+
+        document.getElementById('submitBtn').addEventListener('click', submitExam);
+
+        function submitExam() {
+            if (isSubmitted) return;
+            isSubmitted = true;
+            clearInterval(timerInterval);
+            if (focusCheckInterval) clearInterval(focusCheckInterval);
+
+            document.getElementById('cheatModal').style.display = 'none';
+
+            var score = 0;
+
+            globalQuestions.forEach(function (q, index) {
+                var qId = q.id || index;
+                var selectedRadio = document.querySelector('input[name="q_' + qId + '"]:checked');
+
+                if (selectedRadio) {
+                    var userSelectedLetter = String(selectedRadio.value).trim().toUpperCase();
+
+                    var opt = q.options || {};
+                    var userSelectedText = String(opt[userSelectedLetter] || opt[userSelectedLetter.toLowerCase()] || q[userSelectedLetter.toLowerCase()] || '').trim().toLowerCase();
+
+                    var rawAnswer = String(q.answer || q.Answer || '').trim();
+                    var answerUpper = rawAnswer.toUpperCase();
+                    var answerLower = rawAnswer.toLowerCase();
+
+                    if (userSelectedLetter === answerUpper || (userSelectedText !== '' && userSelectedText === answerLower)) {
+                        score++;
+                    }
+                }
+            });
+
+            var studentData = {
+                name: document.getElementById('studentName').value.trim(),
+                rollNumber: document.getElementById('studentRoll').value.trim(),
+                contact: document.getElementById('studentPhone').value.trim(),
+                email: document.getElementById('studentEmail').value.trim(),
+                score: score,
+                tabSwitches: cheatCount + (cheatCount >= 3 ? " (Terminated)" : " Warnings")
+            };
+
+            document.getElementById('quizSection').innerHTML = '<h2>Submitting your responses...</h2><p>Please wait...</p>';
+
+            if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(function (e) { });
+                }
+            }
+
+            fetch(webAppUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(studentData)
+            })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    document.getElementById('quizSection').innerHTML = '<h2>Examination Completed!</h2>' +
+                        '<p>Thank you, <b>' + studentData.name + '</b>.</p>' +
+                        '<p>Your total score is: <b>' + score + ' / ' + globalQuestions.length + '</b></p>';
+                })
+                .catch(function (err) {
+                    document.getElementById('quizSection').innerHTML = '<h2>Examination Completed!</h2>' +
+                        '<p>Thank you, <b>' + studentData.name + '</b>.</p>' +
+                        '<p>Your total score is: <b>' + score + ' / ' + globalQuestions.length + '</b></p>';
+                });
+        }
+    </script>
+
+</body>
+
+</html>
